@@ -56,9 +56,9 @@ export class Scheduler {
                         if (layer.records.size === 0) {
                             continue
                         }
-                        let records = layer.records.records
+                        let records = Array.from(layer.records.records.values())
                         layer.records.clear()
-                        if (records.size > 0) {
+                        if (records.length > 0) {
                             let beforeRecords = layer.beforeRecords
                             let afterRecords = layer.afterRecords
                             if (beforeRecords) {
@@ -66,7 +66,7 @@ export class Scheduler {
                                     record.callbackFunction.apply({}, record.params === null ? [] : record.params)
                                 }
                             }
-                            for (let record of records.values()) {
+                            for (let record of records) {
                                 record.callbackFunction.apply({}, record.params === null ? [] : record.params)
                             }
                             if (afterRecords) {
