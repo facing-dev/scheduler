@@ -2,7 +2,7 @@
 
 class Records {
     records: Map<any, Record> = new Map
-    add(cb: Function, params: any[] | null, uniqueId = Symbol('unique-id')) {
+    add(cb: Function, params: any[] | null, uniqueId: any = Symbol('unique-id')) {
         this.records.set(uniqueId, {
             callbackFunction: cb,
             params
@@ -11,7 +11,7 @@ class Records {
     clear() {
         this.records.clear()
     }
-    get size(){
+    get size() {
         return this.records.size
     }
 }
