@@ -1,8 +1,8 @@
 
-
-class Records {
-    records: Map<any, Record> = new Map
-    add(cb: Function, params: any[] | null, uniqueId: any = Symbol('unique-id')) {
+type RecordId = symbol | string
+class Layer {
+    records: Map<RecordId, Record> = new Map
+    add(cb: Function, params: any[] | null, uniqueId: RecordId = Symbol('unique-id')) {
         this.records.set(uniqueId, {
             callbackFunction: cb,
             params
@@ -22,28 +22,22 @@ export interface Record {
 }
 
 
-export class Layer {
-    records = new Records
-    beforeRecords = new Records
-    afterRecords = new Records
-}
-
 export class Scheduler {
-    private layerMap: Map<string, Layer> = new Map()
+    private layers: Map<string, Layer> = new Map()
     private scheduled = false
     createLayer(name: string) {
-        if (this.layerMap.has(name)) {
+        if (this.layers.has(name)) {
             throw `Schedule layer ${name} existed`
         }
         let layer: Layer = new Layer
-        this.layerMap.set(name, layer)
+        this.layers.set(name, layer)
         return layer
     }
     getLayer(name: string) {
-        if (!this.layerMap.has(name)) {
+        if (!this.layers.has(name)) {
             return this.createLayer(name)
         }
-        return this.layerMap.get(name)
+        return this.layers.get(name)
     }
     schedule() {
         return new Promise<null>((res) => {
@@ -51,28 +45,16 @@ export class Scheduler {
                 this.scheduled = true
                 let self = this
                 function task() {
-                    for (let ite of self.layerMap) {
+                    for (let ite of self.layers) {
                         let layer = ite[1]
                         if (layer.records.size === 0) {
                             continue
                         }
-                        let records = Array.from(layer.records.records.values())
+                        let records = Array.from(layer.records.values())
                         layer.records.clear()
                         if (records.length > 0) {
-                            let beforeRecords = layer.beforeRecords
-                            let afterRecords = layer.afterRecords
-                            if (beforeRecords) {
-                                for (let record of beforeRecords.records.values()) {
-                                    record.callbackFunction.apply({}, record.params === null ? [] : record.params)
-                                }
-                            }
                             for (let record of records) {
                                 record.callbackFunction.apply({}, record.params === null ? [] : record.params)
-                            }
-                            if (afterRecords) {
-                                for (let record of afterRecords.records.values()) {
-                                    record.callbackFunction.apply({}, record.params === null ? [] : record.params)
-                                }
                             }
                         }
                         run()
@@ -90,7 +72,5 @@ export class Scheduler {
                 res(null)
             }
         })
-
     }
-
 }
